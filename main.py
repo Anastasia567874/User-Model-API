@@ -1,9 +1,9 @@
 from flask import Flask, redirect, render_template
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from data.users import User
 from data.db_session import global_init, create_session
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, BooleanField, SubmitField
+from wtforms import PasswordField, BooleanField, SubmitField, StringField, TextAreaField, IntegerField
 from wtforms.validators import DataRequired
 from wtforms.fields.html5 import EmailField
 from forms.user import RegisterForm
@@ -68,6 +68,35 @@ def reqister():
         db_sess.commit()
         return redirect('/login')
     return render_template('register.html', title='Регистрация', form=form)
+
+
+class JobsForm(FlaskForm):
+    job = StringField('Job Title')
+    team_leader = StringField('Team Leader id')
+    work_size = IntegerField('Work Size')
+    collaborators = StringField('Collaborators')
+    is_finished = BooleanField('Is job finished?')
+    submit = SubmitField('Submit')
+
+
+@app.route('/jobs',  methods=['GET', 'POST'])
+@login_required
+def add_news():
+    form = JobsForm()
+    if form.validate_on_submit():
+        db_sess = create_session()
+        jobs = Jobs()
+        jobs.job = form.job.data
+        jobs.team_leader = form.team_leader.data
+        jobs.work_size = form.work_size.data
+        jobs.collaborators = form.collaborators.data
+        jobs.is_finished = form.is_finished.data
+        current_user.jobs.append(jobs)
+        db_sess.merge(current_user)
+        db_sess.commit()
+        return redirect('/')
+    return render_template('jobs.html', title='Adding a Job',
+                           form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])

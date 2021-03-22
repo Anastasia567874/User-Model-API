@@ -2,6 +2,9 @@
 
 {% block content %}
 <h3>Works log</h3>
+{% if current_user.is_authenticated %}
+    <a class="btn btn-success " href="/jobs">Add job</a>
+{% endif %}
 {% for item in data %}
     <h1>Action # {{item['id']}}</h1>
     <table border="1" width="100%" cellpadding="5">
