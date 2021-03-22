@@ -8,6 +8,7 @@ from wtforms.validators import DataRequired
 from wtforms.fields.html5 import EmailField
 from forms.user import RegisterForm
 from data.jobs import Jobs
+from data.departments import Department
 
 
 app = Flask(__name__)
@@ -39,6 +40,91 @@ def table():
                           'duration': job.work_size, 'list': job.collaborators, 'finish': job.is_finished,
                           'team_leader': job.team_leader})
     return render_template('table.html', data=list_jobs)
+
+
+@app.route('/departments')
+def departments():
+    global_init("db/mars_explorer.db")
+    db_sess = create_session()
+    list_departments = []
+    for department in db_sess.query(Department).all():
+        list_departments.append({'id': department.id, 'title': department.title,
+                                 'chief': f'{department.boss.name} {department.boss.surname}',
+                                 'members': department.members, 'email': department.email,
+                                 'team_leader': department.chief})
+    return render_template('departments.html', data=list_departments)
+
+
+class DepartmentForm(FlaskForm):
+    title = StringField('Department Title')
+    chief = StringField('Chief id')
+    members = StringField('Members')
+    email = StringField('Email')
+    submit = SubmitField('Submit')
+
+
+@app.route('/add_departments',  methods=['GET', 'POST'])
+@login_required
+def add_department():
+    form = DepartmentForm()
+    if form.validate_on_submit():
+        db_sess = create_session()
+        department = Department()
+        department.title = form.title.data
+        department.chief = form.chief.data
+        department.members = form.members.data
+        department.email = form.email.data
+        current_user.departments.append(department)
+        db_sess.merge(current_user)
+        db_sess.commit()
+        return redirect('/departments')
+    return render_template('add_department.html', title='Adding a Department',
+                           form=form)
+
+
+@app.route('/departments/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_departments(id):
+    form = DepartmentForm()
+    if request.method == "GET":
+        db_sess = create_session()
+        department = db_sess.query(Department).filter(Department.id == id,
+                                                      Department.chief == current_user.id).first()
+        if department:
+            form.title.data = department.title
+            form.chief.data = department.chief
+            form.members.data = department.members
+            form.email.data = department.email
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = create_session()
+        department = db_sess.query(Department).filter(Department.id == id,
+                                                      Department.chief == current_user.id).first()
+        if department:
+            department.title = form.title.data
+            department.chief = form.chief.data
+            department.members = form.members.data
+            department.email = form.email.data
+            db_sess.commit()
+            return redirect('/departments')
+        else:
+            abort(404)
+    return render_template('add_department.html', title='Editing a Department', form=form)
+
+
+@app.route('/departments_delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def departments_delete(id):
+    db_sess = create_session()
+    department = db_sess.query(Department).filter(Department.id == id,
+                                                  Department.chief == current_user.id).first()
+    if department:
+        db_sess.delete(department)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect('/departments')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -82,7 +168,7 @@ class JobsForm(FlaskForm):
 
 @app.route('/jobs',  methods=['GET', 'POST'])
 @login_required
-def add_news():
+def add_job():
     form = JobsForm()
     if form.validate_on_submit():
         db_sess = create_session()
