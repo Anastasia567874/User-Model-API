@@ -14,6 +14,7 @@
             <th bgcolor="#808080">Team leader</th>
             <th bgcolor="#808080">Duration</th>
             <th bgcolor="#808080">List of collaborators</th>
+            <th bgcolor="#808080">Hazard category</th>
             <th bgcolor="#808080">Is finished</th>
         </tr>
         <tr>
@@ -21,6 +22,7 @@
             <td bgcolor="#87cefa">{{item['leader']}}</td>
             <td bgcolor="#87cefa">{{item['duration']}} hours</td>
             <td bgcolor="#87cefa">{{item['list']}}</td>
+            <td bgcolor="#87cefa">{{item['category']}}</td>
             {% if item['finish'] == False %}
                 <td bgcolor="#ff2b2b">Is not finished</td>
             {% else %}

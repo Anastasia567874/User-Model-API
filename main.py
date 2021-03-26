@@ -38,7 +38,7 @@ def table():
     for job in db_sess.query(Jobs).all():
         list_jobs.append({'id': job.id, 'title': job.job, 'leader': f'{job.user.name} {job.user.surname}',
                           'duration': job.work_size, 'list': job.collaborators, 'finish': job.is_finished,
-                          'team_leader': job.team_leader})
+                          'team_leader': job.team_leader, 'category': job.categories.id})
     return render_template('table.html', data=list_jobs)
 
 
