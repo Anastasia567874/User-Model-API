@@ -1,5 +1,7 @@
 import sqlalchemy
 from .db_session import SqlAlchemyBase
+from sqlalchemy_serializer import SerializerMixin
+from flask_login import UserMixin
 
 association_table = sqlalchemy.Table(
     'association',
@@ -11,7 +13,7 @@ association_table = sqlalchemy.Table(
 )
 
 
-class Category(SqlAlchemyBase):
+class Category(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'category'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True,
                            autoincrement=True)
